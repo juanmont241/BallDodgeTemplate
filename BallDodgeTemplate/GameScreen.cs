@@ -7,16 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 
 namespace BallDodgeTemplate
 {
     public partial  class GameScreen : UserControl
     {
+        List<SoundPlayer> soundGame = new List<SoundPlayer>();
+
+
         Ball chaseBall;
         Player hero;
+        Ball extraLifeBall;
 
         public static int lives, difficuly;
-        int score = 0;
+        public static int score = 0;
 
         List<Ball> dodgeBalls = new List<Ball>();
         
@@ -34,6 +39,15 @@ namespace BallDodgeTemplate
         public GameScreen()
         {
             InitializeComponent();
+
+            SoundPlayer newLife = new SoundPlayer(Properties.Resources.Collect_Extra_Life);
+            SoundPlayer hitChaseBall = new SoundPlayer(Properties.Resources.Collect_Honeycomb);
+            SoundPlayer gameOver = new SoundPlayer(Properties.Resources.Lose_Life);
+            SoundPlayer selectSound = new SoundPlayer(Properties.Resources.Select);
+            SoundPlayer loseLife = new SoundPlayer(Properties.Resources.Wrong_);
+
+            soundGame.Add(newLife);
+            soundGame.Add(hitChaseBall);
             InitializeGame();
         }
 
@@ -51,14 +65,26 @@ namespace BallDodgeTemplate
             y = randGen.Next(40, screenSize.Height - 40);
             hero = new Player(x, y);
 
+            x = randGen.Next(40, screenSize.Width - 40);
+            y = randGen.Next(40, screenSize.Height - 40);
+            extraLifeBall = new Ball(x, y, 8, 8);
+
             for (int i = 0; i < difficuly; i++)
             {
                 NewBall();
             }
         }
 
+        public void Audio()
+        {
+
+            
+        }
+
         public void NewBall()
         {
+
+            soundGame[1].Play();
             int x = randGen.Next(40, gsWidth - 40);
             int y = randGen.Next(40, gsHeight - 40);
 
@@ -128,16 +154,22 @@ namespace BallDodgeTemplate
             }
 
             chaseBall.Move(screenSize);
+            extraLifeBall.Move(screenSize);
             
             foreach( Ball b in dodgeBalls)
             {
                 b.Move(screenSize);
             }
             
-            if(chaseBall.Collision(hero))
+            if (chaseBall.Collision(hero))
             {
                 score++;
                 NewBall();
+            }
+
+            if (extraLifeBall.Collision(hero))
+            {
+                lives++;
             }
 
             foreach (Ball b in dodgeBalls)
@@ -149,7 +181,7 @@ namespace BallDodgeTemplate
                     if (lives == 0)
                     {
                         gameTImer.Enabled = false;
-                        Form1.ChangeScreen(this, new MenuScreen());
+                        Form1.ChangeScreen(this, new GameOverScreen());
                     }
                 }
             }
@@ -164,6 +196,7 @@ namespace BallDodgeTemplate
             livesLabel.Text = $"{lives}";
 
             e.Graphics.FillEllipse(Brushes.Green, chaseBall.x, chaseBall.y, chaseBall.size, chaseBall.size);
+            e.Graphics.FillEllipse(Brushes.Yellow, extraLifeBall.x, extraLifeBall.y, extraLifeBall.size, extraLifeBall.size);
 
             foreach (Ball b in dodgeBalls)
             {
